@@ -68,7 +68,7 @@ if [ "$show_list" == "1" ] ; then
   exit 0
 fi
 
-PROFILE_DIR=$(mktemp -d /tmp/profiledir.XXXXXX)
+PROFILE_DIR=$(mktemp -d --tmpdir profiledir.XXXXXX)
 
 ENVIRONMENT_D_DIR=$target_dir/../environment.d
 
