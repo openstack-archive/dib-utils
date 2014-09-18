@@ -2,7 +2,6 @@
 # Inspired by Debian and RedHat run-parts but portable and specific to di-b.
 #
 # Copyright 2012 Hewlett-Packard Development Company, L.P.
-# All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -20,6 +19,7 @@ allowed_regex=${RUN_PARTS_REGEX:-"^[0-9A-Za-z_-]+$"}
 show_list=
 
 set -ue
+set -o pipefail
 
 name=$(basename $0)
 
@@ -62,10 +62,10 @@ fi
 targets=$(find $target_dir -maxdepth 1 -xtype f -executable -printf '%f\n' | grep -E "$allowed_regex" | LANG=C sort -n || echo "")
 
 if [ "$show_list" == "1" ] ; then
-  for target in $targets ; do
-    echo "${target_dir}/${target}"
-  done
-  exit 0
+    for target in $targets ; do
+        echo "${target_dir}/${target}"
+    done
+    exit 0
 fi
 
 PROFILE_DIR=$(mktemp -d --tmpdir profiledir.XXXXXX)
@@ -74,7 +74,8 @@ ENVIRONMENT_D_DIR=$target_dir/../environment.d
 
 if [ -d $ENVIRONMENT_D_DIR ] ; then
     env_files=$(find $ENVIRONMENT_D_DIR -maxdepth 1 -xtype f | \
-        grep -E "/[0-9A-Za-z_\.-]+$")
+        grep -E "/[0-9A-Za-z_\.-]+$" | \
+        LANG=C sort -n)
     for env_file in $env_files ; do
         source $env_file
     done
@@ -103,7 +104,7 @@ for target in $(find . -name 'start_*' -printf '%f\n') ; do
     start_seconds=$(cat $target)
     stop_seconds=$(cat $stop_file)
     duration=$(python -c "print($stop_seconds - $start_seconds)")
-    LC_ALL=C printf "%-40s %10.3f\n" ${target##start_} $duration
+    LC_NUMERIC=C LC_ALL=C printf "%-40s %10.3f\n" ${target##start_} $duration
 done
 popd > /dev/null
 rm -rf $PROFILE_DIR
