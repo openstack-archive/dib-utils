@@ -103,7 +103,7 @@ for target in $(find . -name 'start_*' -printf '%f\n' | env LC_ALL=C sort -n) ; 
     stop_file=stop_${target##start_}
     start_seconds=$(cat $target)
     stop_seconds=$(cat $stop_file)
-    duration=$(python -c "print($stop_seconds - $start_seconds)")
+    duration=$(echo - | awk "{ print $stop_seconds - $start_seconds }")
     LC_NUMERIC=C LC_ALL=C printf "%-40s %10.3f\n" ${target##start_} $duration
 done
 popd > /dev/null
