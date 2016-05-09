@@ -34,8 +34,21 @@ usage() {
     exit 1
 } >&2
 
+
+output_prefix() {
+    printf "%s %s " "${name}" "$(date)" >&2
+}
+
 output () {
-    echo $name $(date) $* >&2
+    output_prefix
+    echo $* >&2
+}
+
+output_printf () {
+    local FORMAT="$1"
+    shift
+    output_prefix
+    printf "${FORMAT}" $@ >&2
 }
 
 if [ $# -lt 1 ] ; then
@@ -91,22 +104,22 @@ for target in $targets ; do
     output "$target completed"
 done
 
-echo "----------------------- PROFILING -----------------------"
-echo ""
-echo "Target: $(basename $target_dir)"
-echo ""
-printf "%-40s %9s\n" Script Seconds
-printf "%-40s %9s\n" --------------------------------------- ----------
-echo ""
+output "----------------------- PROFILING -----------------------"
+output ""
+output "Target: $(basename $target_dir)"
+output ""
+output_printf "%-40s %9s\n" Script Seconds
+output_printf "%-40s %9s\n" --------------------------------------- ----------
+output ""
 pushd $PROFILE_DIR > /dev/null
 for target in $(find . -name 'start_*' -printf '%f\n' | env LC_ALL=C sort -n) ; do
     stop_file=stop_${target##start_}
     start_seconds=$(cat $target)
     stop_seconds=$(cat $stop_file)
     duration=$(echo - | awk "{ print $stop_seconds - $start_seconds }")
-    LC_NUMERIC=C LC_ALL=C printf "%-40s %10.3f\n" ${target##start_} $duration
+    LC_NUMERIC=C LC_ALL=C output_printf "%-40s %10.3f\n" ${target##start_} $duration
 done
 popd > /dev/null
 rm -rf $PROFILE_DIR
-echo ""
-echo "--------------------- END PROFILING ---------------------"
+output ""
+output "--------------------- END PROFILING ---------------------"
