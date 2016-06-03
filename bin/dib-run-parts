@@ -51,6 +51,23 @@ output_printf () {
     printf "${FORMAT}" $@ >&2
 }
 
+# source the environment files from environment.d
+#  arg : target_dir
+source_environment() {
+
+    local dir=$target_dir/../environment.d
+    local env_files
+
+    if [ -d ${dir} ] ; then
+        env_files=$(find ${dir} -maxdepth 1 -xtype f | \
+                           grep -E "/[0-9A-Za-z_\.-]+$" | \
+                           LANG=C sort -n)
+        for env_file in $env_files ; do
+            source $env_file
+        done
+    fi
+}
+
 if [ $# -lt 1 ] ; then
     usage
 fi
@@ -83,26 +100,21 @@ fi
 
 PROFILE_DIR=$(mktemp -d --tmpdir profiledir.XXXXXX)
 
-ENVIRONMENT_D_DIR=$target_dir/../environment.d
+# note, run this in a sub-shell so we don't pollute our
+# own environment with source_environment
+(
+    source_environment
 
-if [ -d $ENVIRONMENT_D_DIR ] ; then
-    env_files=$(find $ENVIRONMENT_D_DIR -maxdepth 1 -xtype f | \
-        grep -E "/[0-9A-Za-z_\.-]+$" | \
-        LANG=C sort -n)
-    for env_file in $env_files ; do
-        source $env_file
+    for target in $targets ; do
+        output "Running $target_dir/$target"
+        target_tag=${target//\//_}
+        date +%s.%N > $PROFILE_DIR/start_$target_tag
+        $target_dir/$target
+        target_tag=${target//\//_}
+        date +%s.%N > $PROFILE_DIR/stop_$target_tag
+        output "$target completed"
     done
-fi
-
-for target in $targets ; do
-    output "Running $target_dir/$target"
-    target_tag=${target//\//_}
-    date +%s.%N > $PROFILE_DIR/start_$target_tag
-    $target_dir/$target
-    target_tag=${target//\//_}
-    date +%s.%N > $PROFILE_DIR/stop_$target_tag
-    output "$target completed"
-done
+)
 
 output "----------------------- PROFILING -----------------------"
 output ""
