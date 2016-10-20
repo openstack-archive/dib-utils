@@ -57,13 +57,20 @@ source_environment() {
 
     local dir=$target_dir/../environment.d
     local env_files
+    local xtrace
 
     if [ -d ${dir} ] ; then
         env_files=$(find ${dir} -maxdepth 1 -xtype f | \
                            grep -E "/[0-9A-Za-z_\.-]+$" | \
                            LANG=C sort -n)
         for env_file in $env_files ; do
+            output "Sourcing environment file ${env_file}"
+            # Set tracing as we import these environment files; it's
+            # nice to see the definitions in the logs
+            xtrace=$(set +o | grep xtrace)
+            set -o xtrace
             source $env_file
+            $xtrace
         done
     fi
 }
