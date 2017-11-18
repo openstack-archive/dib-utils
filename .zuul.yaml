@@ -1,0 +1,5 @@
+- project:
+    name: openstack/dib-utils
+    check-tripleo:
+      jobs:
+        - tripleo-ci-centos-7-ovb-ha-oooq
