@@ -1,0 +1,12 @@
+- project:
+    templates:
+      - check-requirements
+    check:
+      jobs:
+        - openstack-tox-functional
+    gate:
+      jobs:
+        - openstack-tox-functional
+    post:
+      jobs:
+        - publish-openstack-python-branch-tarball
