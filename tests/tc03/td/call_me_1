@@ -1,3 +1,0 @@
-#!/bin/bash
-
-echo "call_me_1 called [${CM1}]"
